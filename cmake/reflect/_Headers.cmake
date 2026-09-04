@@ -14,14 +14,15 @@ set( INCLUDE_DIRS
 src/reflect
 src/generic
 src
+src/Functions
 )
 
 #
 # contents selected with patternfile ??-header--private-generated-headers
 #
 set( PRIVATE_GENERATED_HEADERS
-src/reflect/_MulleObjCOSFoundation-import-private.h
-src/reflect/_MulleObjCOSFoundation-include-private.h
+src/reflect/_MulleObjCWindowsFoundation-import-private.h
+src/reflect/_MulleObjCWindowsFoundation-include-private.h
 )
 
 #
@@ -33,13 +34,22 @@ src/generic/include-private.h
 )
 
 #
+# contents selected with patternfile ??-header--private-headers
+#
+set( PRIVATE_HEADERS
+src/MulleObjCWindowsString+Private.h
+src/NSDate+Windows-Private.h
+src/NSTimeZone+Windows-Private.h
+)
+
+#
 # contents selected with patternfile ??-header--public-generated-headers
 #
 set( PUBLIC_GENERATED_HEADERS
-src/reflect/_MulleObjCOSFoundation-export.h
-src/reflect/_MulleObjCOSFoundation-import.h
-src/reflect/_MulleObjCOSFoundation-include.h
-src/reflect/_MulleObjCOSFoundation-provide.h
+src/reflect/_MulleObjCWindowsFoundation-export.h
+src/reflect/_MulleObjCWindowsFoundation-import.h
+src/reflect/_MulleObjCWindowsFoundation-include.h
+src/reflect/_MulleObjCWindowsFoundation-provide.h
 )
 
 #
@@ -54,7 +64,14 @@ src/generic/include.h
 # contents selected with patternfile ??-header--public-headers
 #
 set( PUBLIC_HEADERS
-src/MulleObjCDeps+MulleObjCOSFoundation.h
-src/MulleObjCOSFoundation.h
+src/Functions/NSLog.h
+src/Functions/mulle-windows-tm.h
+src/MulleObjCDeps+MulleObjCOSWindowsFoundation.h
+src/MulleObjCWindowsFoundation.h
+src/NSErrorWindows.h
+src/NSFileManager+Windows.h
+src/NSString+Windows.h
+src/NSTask+Windows.h
+src/_NSWindowsDateFormatter.h
 )
 

@@ -1,7 +1,25 @@
 #
 #
 #
-export PROJECT_NAME="MulleObjCOSFoundation"
+export PROJECT_NAME="MulleObjCWindowsFoundation"
+
+
+#
+#
+#
+export PROJECT_IDENTIFIER="MulleObjCWindowsFoundation"
+
+
+#
+#
+#
+export PROJECT_DOWNCASE_IDENTIFIER="mulle_objc_windows_foundation"
+
+
+#
+#
+#
+export PROJECT_UPCASE_IDENTIFIER="MULLE_OBJC_WINDOWS_FOUNDATION"
 
 
 #
@@ -32,30 +50,6 @@ export PROJECT_DIALECT="objc"
 #
 #
 export PROJECT_EXTENSIONS="m:aam"
-
-
-#
-#
-#
-
-
-
-#
-#
-#
-
-
-
-#
-#
-#
-
-
-
-#
-#
-#
-
 
 
 #

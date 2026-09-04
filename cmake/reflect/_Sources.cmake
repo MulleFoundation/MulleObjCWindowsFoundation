@@ -11,12 +11,30 @@ endif()
 # contents selected with patternfile ??-source--sources
 #
 set( SOURCES
-src/MulleObjCOSFoundation.m
+src/Functions/NSLog.m
+src/Functions/mulle-windows-tm.c
+src/NSBundle+Windows.m
+src/NSCalendarDate+Windows.m
+src/NSData+Windows.m
+src/NSDate+Windows.m
+src/NSDirectoryEnumerator+Windows.m
+src/NSErrorWindows.m
+src/NSFileHandle+Windows.m
+src/NSFileManager+Windows.m
+src/NSLocale+Windows.m
+src/NSPathUtilities+Windows.m
+src/NSPipe+Windows.m
+src/NSProcessInfo+Windows.m
+src/NSRunLoop+Windows.m
+src/NSString+Windows.m
+src/NSTask+Windows.m
+src/NSTimeZone+Windows.m
+src/_NSWindowsDateFormatter.m
 )
 
 #
 # contents selected with patternfile ??-source--stage2-sources
 #
 set( STAGE2_SOURCES
-src/MulleObjCDeps+MulleObjCOSFoundation.m
+src/MulleObjCDeps+MulleObjCOSWindowsFoundation.m
 )
