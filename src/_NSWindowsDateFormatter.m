@@ -41,7 +41,7 @@
 #import "NSTimeZone+Windows-Private.h"
 
 #include <MulleObjCStandardFoundation/mulle-mini-tm.h>
-#include "Functions/mulle-windows-tm.h"
+#include "mulle-windows-tm.h"
 
 #include <time.h>
 #include <ctype.h>

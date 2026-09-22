@@ -66,7 +66,7 @@ src/generic/include.h
 set( PUBLIC_HEADERS
 src/Functions/NSLog.h
 src/Functions/mulle-windows-tm.h
-src/MulleObjCDeps+MulleObjCOSWindowsFoundation.h
+src/MulleObjCDeps+MulleObjCWindowsFoundation.h
 src/MulleObjCWindowsFoundation.h
 src/NSErrorWindows.h
 src/NSFileManager+Windows.h

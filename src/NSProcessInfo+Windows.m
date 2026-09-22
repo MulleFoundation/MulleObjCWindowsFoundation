@@ -18,6 +18,34 @@
 // Windows headers
 #include <windows.h>
 #include <shellapi.h>
+#include <mulle-utf/mulle-utf32.h>
+#include <mulle-allocator/mulle-alloca.h>
+
+
+static wchar_t   *createWideCString( NSString *string)
+{
+   NSUInteger   len;
+   unichar      *utf32;
+   wchar_t      *result;
+
+   if( ! string)
+      return( NULL);
+
+   len    = [string length];
+   result = mulle_malloc( (len + 1) * sizeof( wchar_t));
+
+   if( len)
+   {
+      utf32 = mulle_malloc( len * sizeof( unichar));
+      [string getCharacters:utf32
+                      range:NSMakeRange( 0, len)];
+      _mulle_utf32_convert_to_utf16( (mulle_utf32_t *) utf32, len, (mulle_utf16_t *) result);
+      mulle_free( utf32);
+   }
+   result[ len] = 0;
+
+   return( result);
+}
 
 
 @implementation NSProcessInfo( Windows)
@@ -45,6 +73,17 @@
 }
 
 
+- (NSString *) operatingSystemVersionString
+{
+   DWORD   version;
+
+   version = GetVersion();
+   return( [NSString stringWithFormat:@"Windows %lu.%lu",
+                    (unsigned long) (version & 0xFF),
+                    (unsigned long) ((version >> 8) & 0xFF)]);
+}
+
+
 - (NSUInteger) operatingSystem
 {
    return( NSWindowsNTOperatingSystem);
@@ -57,34 +96,39 @@
    int      argc;
    int      i;
    id       *objects;
+   NSArray  *value;
 
-   if( _arguments)
-      return( _arguments);
-
-   argv = CommandLineToArgvW( GetCommandLineW(), &argc);
-   if( ! argv)
+   [_lock lock];
+   if( ! _arguments)
    {
-      MulleObjCThrowInternalInconsistencyException( @"CommandLineToArgvW failed: %lu",
-                                                     GetLastError());
-      return( nil);
+      argv = CommandLineToArgvW( GetCommandLineW(), &argc);
+      if( ! argv)
+      {
+         [_lock unlock];
+         MulleObjCThrowInternalInconsistencyException( @"CommandLineToArgvW failed: %lu",
+                                                        GetLastError());
+         return( nil);
+      }
+
+      objects = mulle_allocator_malloc( MulleObjCInstanceGetAllocator( self),
+                                        argc * sizeof( id));
+      for( i = 0; i < argc; i++)
+      {
+         objects[ i] = [[NSFileManager defaultManager]
+                           stringWithFileSystemRepresentationUTF16:(mulle_utf16_t *) argv[ i]
+                                                            length:wcslen( argv[ i])];
+      }
+
+      _arguments = [[NSArray alloc] initWithObjects:objects
+                                              count:argc];
+
+      mulle_allocator_free( MulleObjCInstanceGetAllocator( self), objects);
+      LocalFree( argv);
    }
+   value = [[_arguments retain] autorelease];
+   [_lock unlock];
 
-   objects = mulle_allocator_malloc( MulleObjCInstanceGetAllocator( self),
-                                     argc * sizeof( id));
-   for( i = 0; i < argc; i++)
-   {
-      objects[ i] = [[NSFileManager defaultManager]
-                        stringWithFileSystemRepresentationUTF16:(mulle_utf16_t *) argv[ i]
-                                                         length:wcslen( argv[ i])];
-   }
-
-   _arguments = [[NSArray alloc] initWithObjects:objects
-                                           count:argc];
-
-   mulle_allocator_free( MulleObjCInstanceGetAllocator( self), objects);
-   LocalFree( argv);
-
-   return( _arguments);
+   return( value);
 }
 
 
@@ -93,54 +137,59 @@
    LPWCH                env;
    LPWCH                p;
    NSMutableDictionary  *dict;
+   NSDictionary         *result;
 
-   if( _environment)
-      return( _environment);
-
-   env = GetEnvironmentStringsW();
-   if( ! env)
+   [_lock lock];
+   if( ! _environment)
    {
-      MulleObjCThrowInternalInconsistencyException( @"GetEnvironmentStringsW failed: %lu",
-                                                     GetLastError());
-      return( nil);
-   }
-
-   dict = [NSMutableDictionary new];
-
-   for( p = env; *p; )
-   {
-      NSString   *line;
-      NSString   *key;
-      NSString   *value;
-      NSRange    range;
-      size_t     len;
-
-      len  = wcslen( p);
-      line = [[NSString alloc] mulleInitWithUTF16Characters:(mulle_utf16_t *) p
-                                                     length:len];
-      p   += len + 1;
-
-      range = [line rangeOfString:@"="];
-      if( range.length == 0)
+      env = GetEnvironmentStringsW();
+      if( ! env)
       {
-         [line release];
-         continue;
+         [_lock unlock];
+         MulleObjCThrowInternalInconsistencyException( @"GetEnvironmentStringsW failed: %lu",
+                                                        GetLastError());
+         return( nil);
       }
 
-      key   = [[line substringToIndex:range.location] retain];
-      value = [[line substringFromIndex:range.location + 1] retain];
-      [line release];
+      dict = [NSMutableDictionary new];
 
-      [dict mulleSetRetainedObject:value
-                      forCopiedKey:key];
+      for( p = env; *p; )
+      {
+         NSString   *line;
+         NSString   *key;
+         NSString   *value;
+         NSRange    range;
+         size_t     len;
+
+         len  = wcslen( p);
+         line = [[NSString alloc] mulleInitWithUTF16Characters:(mulle_utf16_t *) p
+                                                        length:len];
+         p   += len + 1;
+
+         range = [line rangeOfString:@"="];
+         if( range.length == 0)
+         {
+            [line release];
+            continue;
+         }
+
+         key   = [[line substringToIndex:range.location] retain];
+         value = [[line substringFromIndex:range.location + 1] retain];
+         [line release];
+
+         [dict mulleSetRetainedObject:value
+                         forCopiedKey:key];
+      }
+
+      FreeEnvironmentStringsW( env);
+
+      _environment = [dict copy];
+      [dict release];
    }
+   result = [[_environment retain] autorelease];
+   [_lock unlock];
 
-   FreeEnvironmentStringsW( env);
-
-   _environment = [dict copy];
-   [dict release];
-
-   return( _environment);
+   return( result);
 }
 
 
@@ -168,9 +217,15 @@ static void   unlazyExecutablePath( NSProcessInfo *self)
 
 - (NSString *) _executablePath
 {
+   NSString   *value;
+
+   [_lock lock];
    if( ! (id) _executablePath)
       unlazyExecutablePath( self);
-   return( _executablePath);
+   value = [[_executablePath retain] autorelease];
+   [_lock unlock];
+
+   return( value);
 }
 
 
@@ -191,6 +246,59 @@ static void   unlazyExecutablePath( NSProcessInfo *self)
    MULLE_C_UNUSED( name);
    // Windows doesn't support changing the process name at runtime
    // This is a no-op, like on Linux
+}
+
+
+- (void) mulleSetEnvironmentValue:(NSString *) value
+                           forKey:(NSString *) key
+{
+   NSMutableDictionary   *dict;
+   wchar_t               *wideKey;
+   wchar_t               *wideValue;
+
+   NSParameterAssert( key);
+   if( ! key)
+      return;
+
+   MulleObjCSetWindowsErrorDomain();
+
+   [_lock lock];
+   {
+      dict      = [NSMutableDictionary dictionaryWithDictionary:[self environment]];
+      wideKey   = createWideCString( key);
+      if( ! wideKey)
+      {
+         [_lock unlock];
+         return;
+      }
+
+      wideValue = value ? createWideCString( value) : NULL;
+
+      if( ! SetEnvironmentVariableW( wideKey, wideValue))
+      {
+         DWORD   error = GetLastError();
+
+         if( wideValue)
+            mulle_free( wideValue);
+         mulle_free( wideKey);
+         [_lock unlock];
+         MulleObjCThrowInternalInconsistencyException( @"SetEnvironmentVariableW failed: %lu", error);
+      }
+
+      if( wideValue)
+         mulle_free( wideValue);
+      mulle_free( wideKey);
+
+      if( value)
+         [dict setObject:value
+                  forKey:key];
+      else
+         [dict removeObjectForKey:key];
+
+      [_environment autorelease];
+      _environment = [dict copy];
+   }
+   [_lock unlock];
 }
 
 @end

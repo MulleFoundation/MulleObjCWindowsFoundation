@@ -43,7 +43,7 @@
 #import "NSDate+Windows-Private.h"
 #import "NSTimeZone+Windows-Private.h"
 #include <MulleObjCStandardFoundation/mulle-mini-tm.h>
-#include "Functions/mulle-windows-tm.h"
+#include "mulle-windows-tm.h"
 
 
 static time_t    mulle_mini_tm_get_time( struct mulle_mini_tm mini)

@@ -53,11 +53,29 @@
    NSString         *path;
    NSString         *searchPath;
    mulle_utf16_t    *s_utf16;
+   BOOL             isDirectory;
    HANDLE           hFind;
    WIN32_FIND_DATAW findData;
 
    if( ! root)
       return( nil);
+
+   if( ! [manager fileExistsAtPath:root
+                       isDirectory:&isDirectory])
+      return( nil);
+
+   // a regular file yields an empty enumerator
+   if( ! isDirectory)
+   {
+      [super init];
+
+      _dir           = INVALID_HANDLE_VALUE;
+      _manager       = [manager retain];
+      _rootPath      = [root copy];
+      _inheritedPath = [inherited copy];
+
+      return( self);
+   }
 
    [super init];
 

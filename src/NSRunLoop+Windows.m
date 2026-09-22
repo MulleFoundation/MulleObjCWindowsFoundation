@@ -103,8 +103,10 @@ loop:
          else
             fireTimeout = (DWORD) (fireInterval * 1000);
          
-         if( fireTimeout < timeout)
+         if( fireTimeout <= timeout)
             timeout = fireTimeout;
+         else
+            firstTimer = nil;   // timer fires after the date, not of interest
       }
       else
       {
@@ -117,15 +119,18 @@ loop:
    // If no handles, just sleep
    if( ctxt->count == 0)
    {
+      // A pending timer must be waited for, even if its timeout rounded
+      // down to zero milliseconds, otherwise it would never fire
+      if( firstTimer)
+      {
+         Sleep( timeout ? timeout : 1);
+         goto loop;
+      }
+
       if( timeout == 0)
          return( MulleRunLoopInputReceived);
-      
+
       Sleep( timeout == INFINITE ? 100 : timeout);
-      
-      // If we had a timer, loop back to fire it
-      if( firstTimer)
-         goto loop;
-      
       return( MulleRunLoopTimeout);
    }
 

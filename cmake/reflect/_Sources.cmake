@@ -29,6 +29,7 @@ src/NSRunLoop+Windows.m
 src/NSString+Windows.m
 src/NSTask+Windows.m
 src/NSTimeZone+Windows.m
+src/NSUserDefaults+Windows.m
 src/_NSWindowsDateFormatter.m
 )
 
@@ -36,5 +37,5 @@ src/_NSWindowsDateFormatter.m
 # contents selected with patternfile ??-source--stage2-sources
 #
 set( STAGE2_SOURCES
-src/MulleObjCDeps+MulleObjCOSWindowsFoundation.m
+src/MulleObjCDeps+MulleObjCWindowsFoundation.m
 )

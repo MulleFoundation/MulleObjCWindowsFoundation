@@ -81,6 +81,28 @@
 }
 
 
++ (NSString *) _bundlePathForExecutablePath:(NSString *) executablePath
+{
+   NSString   *dir;
+   NSString   *unixPath;
+
+   if( ! executablePath || ! [executablePath length])
+   {
+      NSFileManager   *manager;
+      manager = [NSFileManager defaultManager];
+      return( [manager currentDirectoryPath]);
+   }
+
+   // Convert to Unix format first
+   unixPath = [executablePath mulleUnixFileSystemString];
+
+   // On Windows, the bundle path is the directory containing the executable
+   dir = [unixPath stringByDeletingLastPathComponent];
+
+   return( dir);
+}
+
+
 - (NSString *) _windowsResourcePath
 {
    NSString   *s;
@@ -106,6 +128,33 @@
 - (NSString *) builtInPlugInsPath
 {
    return( [[self resourcePath] stringByAppendingPathComponent:@"PlugIns"]);
+}
+
+
+- (NSString *) pathForAuxiliaryExecutable:(NSString *) executableName
+{
+   NSString   *path;
+
+   path = [[self executablePath] stringByDeletingLastPathComponent];
+   return( [path stringByAppendingPathComponent:executableName]);
+}
+
+
+- (NSString *) privateFrameworksPath
+{
+   return( [[self resourcePath] stringByAppendingPathComponent:@"Frameworks"]);
+}
+
+
+- (NSString *) sharedFrameworksPath
+{
+   return( [[self resourcePath] stringByAppendingPathComponent:@"SharedFrameworks"]);
+}
+
+
+- (NSString *) sharedSupportPath
+{
+   return( [[self resourcePath] stringByAppendingPathComponent:@"SharedSupport"]);
 }
 
 
@@ -190,6 +239,8 @@
    path   = [NSString stringWithFormat:@"/pseudoproc/memory/%llx", classAddress];
    bundle = [[[self alloc] _mulleInitWithPath:path
                             sharedLibraryInfo:&libInfo] autorelease];
+   if( ! bundle)
+      bundle = [NSBundle mainBundle];
    return( bundle);
 }
 
@@ -241,7 +292,7 @@
 - (BOOL) unloadBundle
 {
    if( ! _handle)
-      return( YES);
+      return( NO);
 
    if( ! FreeLibrary( (HMODULE) _handle))
       return( NO);

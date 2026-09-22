@@ -67,13 +67,13 @@
    case _MulleObjCOpenWriteOnly:
       accessMode           = GENERIC_WRITE;
       shareMode            = 0;
-      creationDisposition  = OPEN_ALWAYS;
+      creationDisposition  = OPEN_EXISTING;
       break;
 
    case _MulleObjCOpenReadWrite:
       accessMode           = GENERIC_READ | GENERIC_WRITE;
       shareMode            = 0;
-      creationDisposition  = OPEN_ALWAYS;
+      creationDisposition  = OPEN_EXISTING;
       break;
    }
 
@@ -279,6 +279,26 @@ static id NSInitFileHandleAndClose( NSFileHandle *self, HANDLE handle)
 - (void) synchronizeFile
 {
    FlushFileBuffers( (HANDLE) _fd);
+}
+
+
+#pragma mark - truncate
+
+- (void) _truncate:(unsigned long long) offset
+{
+   LARGE_INTEGER   liOffset;
+   HANDLE          hFile;
+
+   MulleObjCSetWindowsErrorDomain();
+
+   hFile             = (HANDLE) _fd;
+   liOffset.QuadPart = offset;
+
+   if( ! SetFilePointerEx( hFile, liOffset, NULL, FILE_BEGIN))
+      MulleObjCThrowInternalInconsistencyException( @"SetFilePointerEx failed: %lu", GetLastError());
+
+   if( ! SetEndOfFile( hFile))
+      MulleObjCThrowInternalInconsistencyException( @"SetEndOfFile failed: %lu", GetLastError());
 }
 
 @end
