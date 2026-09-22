@@ -43,6 +43,26 @@
 #include <mulle-allocator/mulle-alloca.h>
 
 
+//
+// NtSuspendProcess/NtResumeProcess are exported by ntdll, but not part of
+// the documented Win32 API. Resolve them lazily, a failure just means the
+// operation is unsupported.
+//
+typedef LONG (NTAPI *MulleNtProcessProc)( HANDLE);
+
+
+static MulleNtProcessProc   mulleNtProcessProc( const char *name)
+{
+   HMODULE   ntdll;
+
+   ntdll = GetModuleHandleW( L"ntdll.dll");
+   if( ! ntdll)
+      return( NULL);
+
+   return( (MulleNtProcessProc) GetProcAddress( ntdll, name));
+}
+
+
 @implementation NSTask( Windows)
 
 //
@@ -366,13 +386,41 @@ static wchar_t  *_buildEnvironmentBlock( NSDictionary *env)
 
 - (BOOL) suspend
 {
-   return( NO);
+   MulleNtProcessProc   proc;
+
+   if( _status != _NSTaskIsPresumablyRunning)
+      return( NO);
+
+   proc = mulleNtProcessProc( "NtSuspendProcess");
+   if( ! proc)
+      return( NO);
+
+   return( proc( (HANDLE) _taskHandle) >= 0);
 }
 
 
 - (BOOL) resume
 {
-   return( NO);
+   MulleNtProcessProc   proc;
+
+   if( _status != _NSTaskIsPresumablyRunning)
+      return( NO);
+
+   proc = mulleNtProcessProc( "NtResumeProcess");
+   if( ! proc)
+      return( NO);
+
+   return( proc( (HANDLE) _taskHandle) >= 0);
+}
+
+
+- (NSTaskTerminationReason) terminationReason
+{
+   if( _status != _NSTaskHasTerminated)
+      MulleObjCThrowInternalInconsistencyException( @"task not terminated yet");
+
+   // Windows has no signals, a terminated process always reports an exit
+   return( NSTaskTerminationReasonExit);
 }
 
 @end
