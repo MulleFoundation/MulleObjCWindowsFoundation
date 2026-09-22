@@ -220,27 +220,38 @@ static wchar_t  *_buildEnvironmentBlock( NSDictionary *env)
    // Build environment block (NULL inherits parent environment)
    envBlock = _environment ? _buildEnvironmentBlock( _environment) : NULL;
 
-   // Build working directory wchar_t (NULL inherits parent cwd)
+   //
+   // Build working directory wchar_t (NULL inherits parent cwd).
+   //
+   // It goes through the same conversion the launch path does, because a
+   // Foundation path here is /c/... and CreateProcessW means C:\... by a path.
+   // Flipping the slashes alone -- which is what this used to do -- turns
+   // /c/users/x into \c\users\x, which is not a directory on any drive, and
+   // CreateProcessW answers 267 (ERROR_DIRECTORY) for it.
+   //
    wideDir = NULL;
    if( _directoryPath)
    {
-      dirLen  = [_directoryPath length];
-      wideDir = mulle_malloc( (dirLen + 1) * sizeof( wchar_t));
-      utf32   = mulle_malloc( dirLen * sizeof( unichar));
+      NSString   *converted;
 
-      [_directoryPath getCharacters:utf32 range:NSMakeRange( 0, dirLen)];
+      converted = [_directoryPath mulleWindowsFileSystemString];
+      dirLen    = [converted length];
 
+      if( dirLen)
       {
          NSUInteger   j;
 
+         wideDir = mulle_malloc( (dirLen + 1) * sizeof( wchar_t));
+         utf32   = mulle_malloc( dirLen * sizeof( unichar));
+
+         [converted getCharacters:utf32 range:NSMakeRange( 0, dirLen)];
+
          for( j = 0; j < dirLen; j++)
-         {
-            unichar c = utf32[ j];
-            wideDir[ j] = (c == '/') ? '\\' : (wchar_t) c;
-         }
+            wideDir[ j] = (wchar_t) utf32[ j];
+
+         wideDir[ dirLen] = 0;
+         mulle_free( utf32);
       }
-      wideDir[ dirLen] = 0;
-      mulle_free( utf32);
    }
 
    // Get pipe handles if set

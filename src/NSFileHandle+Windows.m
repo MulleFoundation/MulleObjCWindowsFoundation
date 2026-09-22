@@ -35,6 +35,7 @@
 #import "import-private.h"
 
 #import "NSErrorWindows.h"
+#import "NSString+Windows.h"
 
 // std-c and dependencies
 #include <windows.h>
@@ -76,6 +77,13 @@
       creationDisposition  = OPEN_EXISTING;
       break;
    }
+
+   //
+   // The same conversion every other path in this port gets: a Foundation path
+   // here is /c/... and CreateFileW means C:\... by a path. Handing it the
+   // slashes flipped instead opens the wrong file, or nothing at all.
+   //
+   path = [path mulleWindowsFileSystemString];
 
    len = [path length];
 

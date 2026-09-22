@@ -259,6 +259,12 @@
    if( ! exePath)
       return( NO);
 
+   //
+   // LoadLibraryW wants C:\... and `executablePath` is a Foundation path, which
+   // is /c/... here -- the same conversion the launch path in NSTask gets.
+   //
+   exePath = [exePath mulleWindowsFileSystemString];
+
    len  = [exePath length];
    rval = YES;
    mulle_alloca_do( utf32, unichar, len)
