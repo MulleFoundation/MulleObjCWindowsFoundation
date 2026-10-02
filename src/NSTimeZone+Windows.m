@@ -47,6 +47,13 @@
 
 - (instancetype) initWithName:(NSString *) name
 {
+   // a nil name is not a programming error, it just can not be resolved
+   if( ! name)
+   {
+      [self release];
+      return( nil);
+   }
+
    NSParameterAssert( [name isKindOfClass:[NSString class]]);
 
    [self init];

@@ -540,6 +540,18 @@ static int   tm_sprintf_character( struct tm *tm,
 
    *string = input;
 
+   //
+   // A format without a zone conversion must parse in the same zone that
+   // -stringFromDate: prints with: the formatter's timeZone, or the default
+   // timeZone. Otherwise parsing silently assumed GMT.
+   //
+   if( ! timeZone)
+   {
+      timeZone = [self timeZone];
+      if( ! timeZone)
+         timeZone = [NSTimeZone defaultTimeZone];
+   }
+
    return( [[[_dateClass alloc] _initWithTM:&tm
                                 nanoseconds:ns
                                    timeZone:timeZone] autorelease]);

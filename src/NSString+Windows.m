@@ -28,15 +28,28 @@
 }
 
 
+// GetACP() is the code page that the char * strings handed to the Win32 API
+// are encoded in. Only a code page this library has a converter for is
+// reported, anything else falls back to UTF-8 (and the lossy conversion).
+static NSStringEncoding   mulle_windows_cstring_encoding( void)
+{
+   switch( GetACP())
+   {
+   case 28591 : return( NSISOLatin1StringEncoding);
+   }
+   return( NSUTF8StringEncoding);
+}
+
+
 - (NSStringEncoding) _cStringEncoding
 {
-   return( NSUTF8StringEncoding);
+   return( mulle_windows_cstring_encoding());
 }
 
 
 + (NSStringEncoding) defaultCStringEncoding
 {
-   return( NSUTF8StringEncoding);
+   return( mulle_windows_cstring_encoding());
 }
 
 
