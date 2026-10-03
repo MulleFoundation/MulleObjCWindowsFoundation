@@ -34,7 +34,6 @@
       "src/NSPipe+Windows.m",
       "src/NSProcessInfo+Windows.m",
       "src/NSRunLoop+Windows.m",
-      "src/NSString+Windows.h",
       "src/NSString+Windows.m",
       "src/NSTask+Windows.h",
       "src/NSTask+Windows.m",

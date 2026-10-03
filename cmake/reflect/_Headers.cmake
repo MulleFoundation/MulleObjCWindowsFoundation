@@ -70,7 +70,6 @@ src/MulleObjCDeps+MulleObjCWindowsFoundation.h
 src/MulleObjCWindowsFoundation.h
 src/NSErrorWindows.h
 src/NSFileManager+Windows.h
-src/NSString+Windows.h
 src/NSTask+Windows.h
 src/_NSWindowsDateFormatter.h
 )
