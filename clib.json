@@ -6,6 +6,7 @@
    "license" : "BSD-3-Clause",
    "repo" : "MulleFoundation/MulleObjCWindowsFoundation",
    "src" : [
+      "asset/dox/api/toc/index.md",
       "src/Functions/mulle-windows-tm.c",
       "src/Functions/mulle-windows-tm.h",
       "src/Functions/NSLog.h",
